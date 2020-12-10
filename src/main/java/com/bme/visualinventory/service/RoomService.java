@@ -3,6 +3,7 @@ package com.bme.visualinventory.service;
 import com.bme.visualinventory.dao.Room;
 import com.bme.visualinventory.domain.request.CreateRoomRequest;
 import com.bme.visualinventory.domain.response.DetailedRoomResponse;
+import com.bme.visualinventory.domain.response.SimpleItemResponse;
 import com.bme.visualinventory.domain.response.SimpleRoomResponse;
 import com.bme.visualinventory.repository.RoomRepository;
 import com.bme.visualinventory.transformer.RoomTransformer;
@@ -22,6 +23,9 @@ public class RoomService {
     @Autowired
     private RoomTransformer roomTransformer;
 
+    @Autowired
+    private ItemService itemService;
+
     public List<SimpleRoomResponse> getAll() {
         return roomRepository.findAll().stream()
                 .map(roomTransformer::createSimpleRoomResponse)
@@ -30,7 +34,8 @@ public class RoomService {
 
     public DetailedRoomResponse get(Long id) {
         Room room = roomRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(""));
-        return roomTransformer.createDetailedRoomResponse(room);
+        List<SimpleItemResponse> items = itemService.getItemsByRoom(room);
+        return roomTransformer.createDetailedRoomResponse(room, items);
     }
 
     public void save(CreateRoomRequest roomRequest) {

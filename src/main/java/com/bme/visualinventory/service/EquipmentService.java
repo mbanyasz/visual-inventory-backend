@@ -2,16 +2,17 @@ package com.bme.visualinventory.service;
 
 import com.bme.visualinventory.dao.Category;
 import com.bme.visualinventory.dao.Equipment;
-import com.bme.visualinventory.dao.Room;
 import com.bme.visualinventory.domain.request.CreateEquipmentsRequest;
-import com.bme.visualinventory.domain.request.ModifyEquipmentRequest;
-import com.bme.visualinventory.domain.response.EquipmentResponse;
+import com.bme.visualinventory.domain.response.DetailedEquipmentResponse;
+import com.bme.visualinventory.domain.response.SimpleEquipmentResponse;
+import com.bme.visualinventory.domain.response.SimpleItemResponse;
 import com.bme.visualinventory.repository.CategoryRepository;
 import com.bme.visualinventory.repository.EquipmentRepository;
 import com.bme.visualinventory.repository.RoomRepository;
 import com.bme.visualinventory.transformer.EquipmentTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -32,36 +33,36 @@ public class EquipmentService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<EquipmentResponse> getAll() {
+    @Autowired
+    private ItemService itemService;
+
+    public List<SimpleEquipmentResponse> getAll() {
         List<Equipment> equipments = equipmentRepository.findAll();
         return equipments.stream()
-                .map(equipmentTransformer::createEquipmentResponse)
+                .map(equipmentTransformer::createSimpleEquipmentResponse)
                 .collect(toList());
     }
 
-    public EquipmentResponse get(Long id) {
+    public DetailedEquipmentResponse get(Long id) {
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(""));
-        return equipmentTransformer.createEquipmentResponse(equipment);
+        List<SimpleItemResponse> items = itemService.getItemsByEquipment(equipment);
+        return equipmentTransformer.createDetailedEquipmentResponse(equipment, items);
     }
 
-    public void save(CreateEquipmentsRequest equipmentsRequest) {
+    public void save(CreateEquipmentsRequest equipmentsRequest, MultipartFile image) {
         Category category = categoryRepository.findById(equipmentsRequest.getCategoryId()).orElseThrow(() -> new IllegalArgumentException(""));
-        Room room = roomRepository.findById(equipmentsRequest.getRoomId()).orElseThrow(() -> new IllegalArgumentException(""));
-        for (int i = 0; i < equipmentsRequest.getNumberOfEquipment(); i++) {
-            Equipment equipment = equipmentTransformer.createEquipment(equipmentsRequest, room, category);
-            equipmentRepository.save(equipment);
-        }
+        Equipment equipment = equipmentTransformer.createEquipment(equipmentsRequest, category, image);
+        equipmentRepository.save(equipment);
     }
 
     public void delete(Long id) {
         equipmentRepository.deleteById(id);
     }
 
-    public void update(Long id, ModifyEquipmentRequest equipmentRequest) {
+    public void update(Long id, CreateEquipmentsRequest equipmentRequest, MultipartFile image) {
         Category category = categoryRepository.findById(equipmentRequest.getCategoryId()).orElseThrow(() -> new IllegalArgumentException(""));
-        Room room = roomRepository.findById(equipmentRequest.getRoomId()).orElseThrow(() -> new IllegalArgumentException(""));
         Equipment equipment = equipmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(""));
-        Equipment updatedEquipment = equipmentTransformer.updateEquipment(equipmentRequest, equipment, room, category);
+        Equipment updatedEquipment = equipmentTransformer.updateEquipment(equipment, equipmentRequest, category, image);
         equipmentRepository.save(updatedEquipment);
     }
 

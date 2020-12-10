@@ -2,90 +2,69 @@ package com.bme.visualinventory.transformer;
 
 import com.bme.visualinventory.dao.Category;
 import com.bme.visualinventory.dao.Equipment;
-import com.bme.visualinventory.dao.Room;
 import com.bme.visualinventory.domain.request.CreateEquipmentsRequest;
-import com.bme.visualinventory.domain.request.ModifyEquipmentRequest;
-import com.bme.visualinventory.domain.response.EquipmentForCategoryResponse;
-import com.bme.visualinventory.domain.response.EquipmentForRoomResponse;
-import com.bme.visualinventory.domain.response.EquipmentResponse;
+import com.bme.visualinventory.domain.response.DetailedEquipmentResponse;
+import com.bme.visualinventory.domain.response.SimpleEquipmentResponse;
+import com.bme.visualinventory.domain.response.SimpleItemResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class EquipmentTransformer {
 
-    public EquipmentForCategoryResponse createEquipmentForCategoryResponse(Equipment equipment) {
-        EquipmentForCategoryResponse response = new EquipmentForCategoryResponse();
+    @Autowired
+    private CategoryTransformer categoryTransformer;
+
+    public List<SimpleEquipmentResponse> createSimpleEquipmentResponses(List<Equipment> equipments) {
+        return equipments.stream()
+                .map(this::createSimpleEquipmentResponse)
+                .collect(toList());
+    }
+
+    public SimpleEquipmentResponse createSimpleEquipmentResponse(Equipment equipment) {
+        SimpleEquipmentResponse response = new SimpleEquipmentResponse();
         response.setId(equipment.getId());
         response.setName(equipment.getName());
         response.setDescription(equipment.getDescription());
-        response.setFunctional(equipment.isFunctional());
-        response.setRoomId(equipment.getRoom().getId());
-        response.setRoomBuilding(equipment.getRoom().getBuilding());
-        response.setRoomFloor(equipment.getRoom().getFloor());
-        response.setRoomName(equipment.getRoom().getName());
+        response.setCategory(categoryTransformer.createSimpleCategoryResponse(equipment.getCategory()));
+        response.setImageBytes(equipment.getImage());
         return response;
     }
 
-    public EquipmentForRoomResponse createEquipmentForRoomResponse(Equipment equipment) {
-        EquipmentForRoomResponse response = new EquipmentForRoomResponse();
+    public DetailedEquipmentResponse createDetailedEquipmentResponse(Equipment equipment, List<SimpleItemResponse> items) {
+        DetailedEquipmentResponse response = new DetailedEquipmentResponse();
         response.setId(equipment.getId());
         response.setName(equipment.getName());
         response.setDescription(equipment.getDescription());
-        response.setFunctional(equipment.isFunctional());
-        response.setCategoryId(equipment.getCategory().getId());
-        response.setCategoryName(equipment.getCategory().getName());
+        response.setCategory(categoryTransformer.createSimpleCategoryResponse(equipment.getCategory()));
+        response.setImageBytes(equipment.getImage());
+        response.setItems(items);
         return response;
     }
 
-
-    public List<EquipmentForCategoryResponse> createEquipmentForCategoryResponses(List<Equipment> equipments) {
-        return equipments.stream()
-                .map(this::createEquipmentForCategoryResponse)
-                .collect(Collectors.toList());
-    }
-
-    public List<EquipmentForRoomResponse> createEquipmentForRoomResponses(List<Equipment> equipments) {
-        return equipments.stream()
-                .map(this::createEquipmentForRoomResponse)
-                .collect(Collectors.toList());
-    }
-
-    public Equipment createEquipment(CreateEquipmentsRequest equipmentsRequest, Room room, Category category) {
+    public Equipment createEquipment(CreateEquipmentsRequest equipmentsRequest, Category category, MultipartFile image) {
         Equipment equipment = new Equipment();
-        equipment.setName(equipmentsRequest.getName());
-        equipment.setDescription(equipmentsRequest.getDescription());
-        equipment.setFunctional(true);
-        equipment.setRoom(room);
-        equipment.setCategory(category);
-        return equipment;
+        return updateEquipment(equipment, equipmentsRequest, category, image);
     }
 
-    public Equipment updateEquipment(ModifyEquipmentRequest equipmentsRequest, Equipment equipment, Room room, Category category) {
+    public Equipment updateEquipment(Equipment equipment, CreateEquipmentsRequest equipmentsRequest, Category category, MultipartFile image) {
         equipment.setName(equipmentsRequest.getName());
         equipment.setDescription(equipmentsRequest.getDescription());
-        equipment.setFunctional(equipmentsRequest.isFunctional());
-        equipment.setRoom(room);
         equipment.setCategory(category);
+        if (image != null && !image.isEmpty()) {
+            try {
+                equipment.setImage(image.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("IOException while saving category image");
+            }
+        }
         return equipment;
-    }
-
-    public EquipmentResponse createEquipmentResponse(Equipment equipment) {
-        EquipmentResponse response = new EquipmentResponse();
-        response.setId(equipment.getId());
-        response.setName(equipment.getName());
-        response.setFunctional(equipment.isFunctional());
-        response.setDescription(equipment.getDescription());
-        response.setRoomId(equipment.getRoom().getId());
-        response.setRoomBuilding(equipment.getRoom().getBuilding());
-        response.setRoomFloor(equipment.getRoom().getFloor());
-        response.setRoomName(equipment.getRoom().getName());
-        response.setCategoryId(equipment.getCategory().getId());
-        response.setCategoryName(equipment.getCategory().getName());
-        response.setCategoryImage(equipment.getCategory().getImage());
-        response.setCategoryDescription(equipment.getCategory().getDescription());
-        return response;
     }
 }

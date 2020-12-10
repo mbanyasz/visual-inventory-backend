@@ -16,7 +16,7 @@ public class Room {
     private String building;
     private String name;
     @OneToMany(mappedBy = "room")
-    private List<Equipment> equipments;
+    private List<Item> items;
 
     public Room() {}
 

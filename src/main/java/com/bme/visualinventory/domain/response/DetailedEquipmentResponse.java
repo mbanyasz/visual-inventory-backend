@@ -5,12 +5,13 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class DetailedRoomResponse {
+public class DetailedEquipmentResponse {
 
     private Long id;
-    private String building;
-    private Long floor;
     private String name;
+    private String description;
+    private byte[] imageBytes;
+    private SimpleCategoryResponse category;
     private List<SimpleItemResponse> items;
 
 }

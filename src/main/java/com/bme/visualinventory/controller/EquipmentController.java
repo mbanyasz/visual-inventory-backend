@@ -1,14 +1,12 @@
 package com.bme.visualinventory.controller;
 
 import com.bme.visualinventory.domain.request.CreateEquipmentsRequest;
-import com.bme.visualinventory.domain.request.CreateRoomRequest;
-import com.bme.visualinventory.domain.request.ModifyEquipmentRequest;
-import com.bme.visualinventory.domain.response.DetailedCategoryResponse;
-import com.bme.visualinventory.domain.response.EquipmentResponse;
-import com.bme.visualinventory.domain.response.SimpleCategoryResponse;
+import com.bme.visualinventory.domain.response.DetailedEquipmentResponse;
+import com.bme.visualinventory.domain.response.SimpleEquipmentResponse;
 import com.bme.visualinventory.service.EquipmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,28 +19,31 @@ public class EquipmentController {
     private EquipmentService equipmentService;
 
     @GetMapping
-    public List<EquipmentResponse> getAllCategories() {
+    public List<SimpleEquipmentResponse> getAllEquipments() {
         return equipmentService.getAll();
     }
 
     @GetMapping("/{id}")
-    public EquipmentResponse getCategory(@PathVariable("id") Long id) {
+    public DetailedEquipmentResponse getEquipment(@PathVariable("id") Long id) {
         return equipmentService.get(id);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteRoom(@PathVariable("id") Long id) {
+    public void deleteEquipment(@PathVariable("id") Long id) {
         equipmentService.delete(id);
     }
 
-    @PostMapping
-    public void saveEquipments(@RequestBody CreateEquipmentsRequest equipmentsRequest) {
-        equipmentService.save(equipmentsRequest);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public void saveCategory(@RequestPart("data") CreateEquipmentsRequest equipmentsRequest,
+                             @RequestPart("file") MultipartFile image) {
+        equipmentService.save(equipmentsRequest, image);
     }
 
-    @PutMapping("/{id}")
-    public void updateRoom(@PathVariable("id") Long id, @RequestBody ModifyEquipmentRequest equipmentRequest) {
-        equipmentService.update(id, equipmentRequest);
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public void updateCategory(@PathVariable("id") Long id,
+                               @RequestPart("data") CreateEquipmentsRequest equipmentRequest,
+                               @RequestPart("file") MultipartFile image) {
+        equipmentService.update(id, equipmentRequest, image);
     }
 
 }

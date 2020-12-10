@@ -11,6 +11,7 @@ public class DetailedCategoryResponse {
     private String name;
     private String description;
     private byte[] imageBytes;
-    private List<EquipmentForCategoryResponse> equipments;
+    private List<SimpleItemResponse> items;
+    private List<SimpleEquipmentResponse> equipments;
 
 }

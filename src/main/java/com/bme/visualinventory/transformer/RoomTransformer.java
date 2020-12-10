@@ -3,9 +3,12 @@ package com.bme.visualinventory.transformer;
 import com.bme.visualinventory.dao.Room;
 import com.bme.visualinventory.domain.request.CreateRoomRequest;
 import com.bme.visualinventory.domain.response.DetailedRoomResponse;
+import com.bme.visualinventory.domain.response.SimpleItemResponse;
 import com.bme.visualinventory.domain.response.SimpleRoomResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class RoomTransformer {
@@ -33,13 +36,13 @@ public class RoomTransformer {
         return response;
     }
 
-    public DetailedRoomResponse createDetailedRoomResponse(Room room) {
+    public DetailedRoomResponse createDetailedRoomResponse(Room room, List<SimpleItemResponse> items) {
         DetailedRoomResponse response = new DetailedRoomResponse();
         response.setId(room.getId());
         response.setBuilding(room.getBuilding());
         response.setFloor(room.getFloor());
         response.setName(room.getName());
-        response.setEquipments(equipmentTransformer.createEquipmentForRoomResponses(room.getEquipments()));
+        response.setItems(items);
         return response;
     }
 }

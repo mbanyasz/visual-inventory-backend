@@ -5,11 +5,12 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode
-public class SimpleRoomResponse {
+public class SimpleEquipmentResponse {
 
     private Long id;
-    private Long floor;
-    private String building;
     private String name;
+    private String description;
+    private byte[] imageBytes;
+    private SimpleCategoryResponse category;
 
 }
